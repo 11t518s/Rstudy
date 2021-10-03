@@ -19,7 +19,6 @@ user
 hist(user$Gender)
 
 # 문제 2-3 풀이
-user
 user2 <- user[seq(from=0,to=nrow(user),by=2),]
 user2
 

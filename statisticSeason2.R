@@ -5,6 +5,7 @@ dim(diamonds)
 ggplot(diamonds, aes(x=carat, y=price, color=cut))
 
 # layers
+library(rJava)
 
 g1 = ggplot(diamonds, aes(x=carat, y=price, color=cut)) + geom_point() + geom_smooth()
  
@@ -96,17 +97,15 @@ getwd()
 
 install.packages("DBI")
 install.packages('RMySQL') # mysql 돌리기
-# install.packages("rJava")
-# install.packages("RJDBC")
 
 library(DBI)
-library(RMySQL)  # 맥에서 rjava 랑 RDJBC가 안돼서 다른방법찾을 찾음
+library(RMySQL)  # 맥에서 안돼서 다른방법찾을 찾음
 
 drv <- dbDriver("MySQL")
 conn <- dbConnect(drv, username="scott", password="tiger", dbname ="work", host="localhost")
-dbSendQuery(conn, "SET NAMES utf8;") 
-dbSendQuery(conn, "SET CHARACTER SET utf8;") 
-dbSendQuery(conn, "SET character_set_connection=utf8;")
+dbSendQuery(conn, "SET NAMES utf8;")  # 콘솔에 한글 나오게 하기
+dbSendQuery(conn, "SET CHARACTER SET utf8;")  # 콘솔에 한글 나오게 하기
+dbSendQuery(conn, "SET character_set_connection=utf8;") # 콘솔에 한글 나오게 하기
 
 # select 문장
 
@@ -329,8 +328,226 @@ summary(res)
 
 
 
-################################################################################
+####################################모비율 추론############################################
 
-getwd()
-setwd("/Users/bongsu/Desktop/Rstudy")
+#단일 집단 모비율 추론
+
+setwd("/Users/bongsu/Downloads/data/part3")
+data = read.csv("one_sample.csv")
+data
+
+sum(is.na(data$servey))
+table(data$survey) # 0 : 불만족(14) , 1: 만족 (136)
+sum(data$survey)/length(data$survey)
+
+# 양측 검정 (H0: p=0.8, H1: p!=0.8)
+x = data$survey
+binom.test(136, 150, p=0.8, alternative = "two.sided", conf.level=0.95)
+binom.test(c(136,14), p=0.8) # 같은 결과
+# X ~ Bin(150, 0.8)
+pbinom(135, 150, 0.8, lower.tail = F)*2 # *2 는 양ㄱ측검정 # 셋다 같은 결과 (조금의 오차는 있으나 거의 같은결과라 할 수 있음) 136-1 으로 135
+
+# 단측 검정 (H0: p=0.8, H1: p>0.8)
+binom.test(136,150, p=0.8, alternative = "greater", conf.level = 0.95)
+pbinom(135,150,0.8,lower.tail=F) # 두개가 같음 위에 있는 것 까지 포함하여 어떤 방식으로 하던 다됨 
+
+
+
+
+# 두 집단의 비율 추론
+data = read.csv("two_sample.csv")
+head(data)
+x = data$method
+y = data$survey
+table(x,y)
+#양측 검정 (H0: p1=p2, H1: p1!=p2)
+prop.test(c(110,135),c(150,150), alternative = 'two.sided', conf.level=0.95)
+
+#단측 검정 (H0: p1=p2, H1: p1<p2)
+prop.test(c(110,135),c(150,150), alternative = 'less', conf.level=0.95)
+
+
+
+#세집단의 비율 추론
+data = read.csv("three_sample.csv")
+head(data)
+x = data$method
+y = data$survey
+table(x,y)
+
+# 세 집단의 비율 차이 검정  (H0: p1=p2=p3, H1: not H0)
+prop.test(c(34,37,39), c(50,50,50), alternative = "two.sided", conf.level = 0.95)
+
+
+
+
+######################################## chapter 12#######################################
+
+#적합도 검정
+
+x = data.frame(matrix(c(1,2,3,4,5,41,30,51,71,61), ncol=2))
+names(x) = c('prod', 'freq')
+x$prop = x$freq / sum(x$freq)
+x
+
+# H0: p1=p2=p3=p4=p5=0.2(전부다 동일), H1: not H0
+chisq.test(x$freq)
+
+# H0: p1~p5=c(0.2,0.1,0.2,0.3,0.2), H1: not H0
+chisq.test(x$freq, p=c(0.2,0.1,0.2,0.3,0.2))
+
+
+
+###############독립성 검정(Independence Test)##################
+
+install.packages("gmodels")
+
+library(gmodels)
+setwd("/Users/bongsu/Downloads/data/part3")
+
+data = read.csv("cleanDescriptive.csv", fileEncoding = "CP949")
+data
+dim(data)
+
+x = data$level2
+y = data$pass2
+
+table(x)
+table(y)
+
+
+# H0: 부모의 학력수준과 대학진학여부는 관련성이 없다.
+# H1: 부모의 학력수준과 대학진학은 관련있다.
+
+chisq.test(x,y)
+? chisq.test
+CrossTable(x,y, chisq=T)
+
+
+# 동질성 검정
+
+data = read.csv("homogenity.csv", header=T)
+head(data)
+dim(data)
+
+CrossTable(data$method, data$survey, chisq=T)
+chisq.test(data$method, data$survey)
+
+
+
+# chisq test
+
+
+tab1 = table(data$level2, data$pass2) # 독립성 검정
+tab1 = table(data$method, data$survey) # 동질성 검정
+
+compute.chisq = function(tab) {
+  r = nrow(tab)
+  c = ncol(tab)
+  tab = cbind(tab,apply(tab,1,sum))
+  tab = rbind(tab,apply(tab,2,sum))
+  chi = 0
+  for (i in 1:r) {
+    for (j in 1:c) {
+      eij = tab[r+1,c+1]*tab[i,j]/tab[r+1,j]*tab[i,j]/tab[i,c+1]
+      chi = chi + (tab[i,j]-eij)^2/eij
+    }
+  }
+  list(chi,pchisq(chi,df=(r-1)*(c-1),lower.tail=F))
+}
+compute.chisq(tab1)
+
+########################################### oop #########################################3
+
+install.packages("pryr")
+library(pryr)
+?pryr
+
+
+df = data.frame(x=1:10, y=letters[1:10])
+df
+otype(df)
+
+methods("mean")
+methods("t.test")
+methods(class="ts")
+
+
+
+
+# S3 object
+foo = structure(list(), class="foo")
+class(foo)
+inherits(foo, "foo")
+
+# S3 object (2)
+foo = list()
+class(foo) = "foooo"
+class(foo)
+inherits(foo,"foooo")
+otype(foo)
+
+
+# S3 function
+ 
+# create a generic function
+
+f = function(x) UseMethod("f")
+f
+
+f.a = function(x) "Class a!!"
+
+f.default = function(x) "Unknwon!!!"
+
+obj1 = list(); class(obj1) = "a"
+class(obj1)
+otype(obj1)
+f(obj1)
+
+
+# create a linear model
+
+mod = lm(log(mpg)~log(disp), data=mtcars)
+mod
+summary(mod)
+class(mod)
+otype(mod)
+methods("summary")
+
+class(mod) = "newlm"
+
+summary(mod)
+
+summary.newlm = function(object, ...) print("newlm!!!!")
+summary(mod)
+
+#### oop 2 ####
+
+
+# S4 object
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

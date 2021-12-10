@@ -526,28 +526,75 @@ summary(mod)
 
 # S4 object
 
+library(methods)
+
+setClass("Person", slots=list(name="character", age="numeric"))
+setClass("Employee", slots = list(boss="Person"), 
+         contains = "Person")
+
+alice = new("Person", name="Alice", age=40)
+john = new("Employee", name="john", age=20, boss=alice)
+alice
+john
+
+
+alice@name
+alice@age
+john@boss@name
+
+
+# create a generic function and method
+union
+methods("union")
+setGeneric("union")
+setMethod("union", c(x="data.frame", y="data.frame"), 
+          function(x,y) {
+            unique(rbind(x,y))
+            }
+          )
+a =data.frame(a=10, b=20)
+b =data.frame(a=10, b=30)
+
+union(a,b)
+
+
+# RC object
+
+
+
+Acc1 = setRefClass("Account1", fields=list(balance="numeric"))
+Acc2 = setRefClass("Account2", fields=list(balance="numeric"),
+                   methods=list(
+                     withdraw = function(x) {balance <<-balance - x},
+                     deposit = function(x) {balance <<- balance + x}
+                   ))
+
+Acc3 = setRefClass("NoOverdraft", 
+                   contains = "Account2",
+                   methods=list(
+                     withdraw = function(x) {
+                       if(balance <x) stop("Not enough Money!!!")
+                       balance <<- balance - x
+                     }
+                   ))
+
+
+a1 = Acc1$new(balance=100)
+a1$balance
 
 
 
 
+a2 = Acc2$new(balance=100)
+a2$deposit(100)
+a2$balance
+a2$withdraw(50)
+a2$balance
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+a3  = Acc3$new(balance=100)
+a3$deposit(50)
+a3$balance
+a3$withdraw(1000)
 
 

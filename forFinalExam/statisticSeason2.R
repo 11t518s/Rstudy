@@ -10,7 +10,7 @@ library(rJava)
 g1 = ggplot(diamonds, aes(x=carat, y=price, color=cut)) + geom_point() + geom_smooth()
  
 ggplot(diamonds) + geom_point(aes(x=carat, y=price, color=cut)) + geom_smooth(aes(x=carat, y=price))
-ggplot(diamonds, aes(x=carat, y=price)) + geom_point(aes(color=cut)) + geom_smooth() #?븘?옒?쐞 媛숈쓬
+ggplot(diamonds, aes(x=carat, y=price)) + geom_point(aes(color=cut)) + geom_smooth() #????????? 媛????
 
 g2 = ggplot(diamonds, aes(x=carat, y=price)) + geom_point(aes(color=cut, shape=cut)) + geom_smooth()
                               
@@ -25,7 +25,7 @@ g4 = g3 + theme(plot.title=element_text(size=20, face="bold"),
                 axis.text.y = element_text(size=20),
                 axis.title.x = element_text(size=25),
                 axis.title.y = element_text(size=25)) + 
-  scale_color_discrete(name="Cut of Diamonds") # ?씠?궛?삎?씠?떈 ?뿰?냽?뀳?씤吏??뿉 ?뵲?씪?꽌 discrete ?씤吏? continuous?씤吏? 
+  scale_color_discrete(name="Cut of Diamonds") # ??????????????? ???????????몄????? ????????? discrete ??몄?? continuous??몄?? 
 
 # scale_color_discrete
 # scale_color_continuous
@@ -100,6 +100,52 @@ install.packages('RMySQL') # mysql 돌리기
 
 library(DBI)
 library(RMySQL)  # 맥에서 안돼서 다른방법찾을 찾음
+
+# terminal에서 해줘야할 작업들
+# mysql.server start
+# mariadb -u root -p
+
+# show databases; 데이터 베이스 이름 보기
+
+# 데이터베이스 만들기
+# create database ?????
+
+# 데이터 베이스 사용하기
+# use ?????
+
+# 데이터베이스 테이블 보기
+# show tables;
+
+
+# 데이터 베이스에서 테이블 만들기
+# create table goods (
+# code int primary key,
+# name varchar(20) not null,
+# su int, 
+# dan, int);
+
+# 데이터베이스에서 만든 테이블 내부에 값들 널어주기
+# insert into goods values (1, '냉장고', 2, 850000);
+
+#데이터베이스 내부에 만든 테이블 읽기
+# select * from goods;
+
+
+# use work 이후에 바깥으로 다시 나오기
+
+
+# 유저와 비밀번호 만들기
+# create user 'scott'@'localhost' identified by 'tiger';
+
+
+#에러가 나면 확인해보기
+# select Host, User, Password from mysql.user;
+
+# 만든 유저에 데이터베이스 접근권한 주기
+# grant all privileges on work.* to 'scott'@'localhost';
+# flush privileges;
+
+
 
 drv <- dbDriver("MySQL")
 conn <- dbConnect(drv, username="scott", password="tiger", dbname ="work", host="localhost")

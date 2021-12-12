@@ -354,3 +354,97 @@ binom.test(c(136,14), p=0.8, alternative = "greater", conf.level = 0.95)
 
 
 # 두 모집단의 비율 추론
+setwd("/Users/bongsu/Downloads/data/part3")
+data = read.csv("two_sample.csv", header=TRUE)
+head(data)
+summary(data)
+x = data$method
+y = data$survey
+table(x)
+table(y)
+
+table(x,y, useNA='ifany')
+
+prop.test(c(110, 135), c(150,150))
+prop.test(c(110, 135), c(150,150), alternative="two.sided", conf.leve=0.95)
+
+prop.test(c(110, 135), c(150,150), alternative="less", conf.leve=0.95)
+
+# 세 모집단의 비율추론
+setwd("/Users/bongsu/Downloads/data/part3")
+data = read.csv("three_sample.csv", header=TRUE)
+head(data)
+method= data$method
+survey = data$survey
+table(method, useNA='ifany')
+table(method, survey, useNA='ifany')
+
+prop.test(c(34,37,39), c(50,50,50))
+prop.test(c(34,37,39), c(50,50,50), alternative = 'two.sided', conf.level = 0.95)
+
+
+
+############################ 12장 #####################################3
+# 적합도 검정
+
+x = data.frame(matrix(c(1,2,3,4,5,41,30,51,71,61), ncol=2))
+colnames(x) = c("prod", "freq")
+x
+x$prop = round(x$freq/sum(x$freq), 2)
+x$prop
+
+chisq.test(x$freq)
+chisq.test(x$freq, p=c(0.2,0.1,0.2,0.3,0.2))
+
+# 독립성 검정
+
+install.packages('gmodels')
+library(gmodels)
+data = read.csv('cleanDescriptive.csv', header=TRUE, fileEncoding = 'CP949')
+data
+
+x = data$level2
+y = data$pass2
+
+chisq.test(x,y)
+CrossTable(x,y,chisq=TRUE)
+
+
+# 동질성 검정
+setwd("/Users/bongsu/Downloads/data/part3")
+data = read.csv("homogenity.csv", header=TRUE)
+data
+head(data)
+
+table(data$method, data$survey, exclude=NULL)
+x = data$method
+y = data$survey
+
+
+chisq.test(x,y)
+CrossTable(x,y, chisq=TRUE)
+
+
+
+tab1 = table(data$level2, data$pass2) # 독립성 검정
+tab1 = table(data$method, data$survey) # 동질성 검정
+
+compute.chisq = function(tab) {
+  r = nrow(tab)
+  c = ncol(tab)
+  tab = cbind(tab,apply(tab,1,sum))
+  tab = rbind(tab,apply(tab,2,sum))
+  chi = 0
+  for (i in 1:r) {
+    for (j in 1:c) {
+      eij = tab[r+1,c+1]*tab[i,j]/tab[r+1,j]*tab[i,j]/tab[i,c+1]
+      chi = chi + (tab[i,j]-eij)^2/eij
+    }
+  }
+  list(chi,pchisq(chi,df=(r-1)*(c-1),lower.tail=F))
+}
+compute.chisq(tab1)
+
+
+
+############################# 크롤링 ##############################3

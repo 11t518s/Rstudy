@@ -233,3 +233,124 @@ dbGetQuery(conn, "select * from goods_newss")
 #disconnect 연결 끊기
 dbDisconnect(conn)
 
+############################### 11장 모평균 추론 ##########################3
+####################3신뢰도 추정 ci#####################
+set.seed(1)
+n = 100
+x = rnorm(n)
+xbar = mean(x)
+se = sd(x)/sqrt(n)
+tval = qt(0.05/2, df=n-1)*(-1)
+ci.x = c(xbar-tval*se, xbar+tval*se)
+2-1*5
+ci.x
+
+
+############## 단일 모집단 모평균 추론 ######################3
+
+setwd("/Users/bongsu/Downloads/data/part3")
+data = read.csv("one_sample.csv", header=TRUE)
+head(data)
+str(data)
+x = data$time
+x1 = na.omit(x)
+mean(x1)
+
+shapiro.test(x1) # 샤피로 검정 shapiro test, 정규분포에 얼마나 가까운가?
+hist(x1, freq=F, col="light blue", main="Histrogram of x1") # histogram만들기, 히스토그램
+lines(density(x1), col="red") # 히스토그램에 라인 긋기
+
+qqnorm(x1, pch=16, col="light blue") #qq plot 큐큐플롯, 큐큐plot, qqplot, qq플롯
+qqline(x1, lty=1, col="red") # qqplot에 라인그리기 
+
+res = t.test(x1, mu = 5.2) # 평균이 5.2인지 
+res = t.test(x1, mu = 5.2, alter="two.side", conf.level = 0.95) # 위와 동일 양측에 0.95가 기본 옵션
+res
+
+res = t.test(x1, mu = 5.2, alter="greater", conf.level = 0.95) # 위와 동일 양측에 0.95가 기본 옵션
+res
+
+############ 대응 비교 모평균 추론 #############
+
+setwd("/Users/bongsu/Downloads/data/part3")
+data = read.csv("paired_sample.csv", header=TRUE)
+head(data)
+
+result = subset(data, !is.na(after), c(before, after))
+x = result$before
+y = result$after
+mean(x)
+mean(y, na.rm = T)
+
+res = t.test(x, y, paired=TRUE)
+res = t.test(x, y, paired=TRUE, alter="two.side", conf.level=0.95)
+res
+
+res = t.test(x, y, paired=TRUE, alter="less", conf.level=0.95)
+res
+
+############ 서로 독립인 두 집단에 대한 추론 ############
+setwd("/Users/bongsu/Downloads/data/part3")
+data = read.csv("two_sample.csv", header=TRUE)
+head(data)
+summary(data)
+result = subset(data, !is.na(score), c(method, score))
+a = subset(result, method==1)$score
+mean(a)
+b = subset(result, method==2)$score
+mean(b)
+
+#분산 동질성 검정
+var.test(a,b, alter="two.sided")
+
+res = t.test(a,b)
+res = t.test(a, b,  alter="two.side", conf.level=0.95)
+res
+
+res = t.test(a, b,  alter="less", conf.level=0.95)
+
+############# 서로 독립인 세 집단 이상에 대한 분산 분석 ##################
+setwd("/Users/bongsu/Downloads/data/part3")
+data = read.csv("three_sample.csv", header=TRUE)
+data = subset(data, !is.na(score), c(method, score))
+
+
+# outlier제거
+plot(data$score)
+data2 = subset(data, score <= 14)
+boxplot(data2$score, col="light blue")
+
+# 테이블 만들기
+data2$method2[data2$method==1] = "Method1"
+data2$method2[data2$method==2] = "Method2"
+data2$method2[data2$method==3] = "Method3"
+x = table(data2$method2)
+y = tapply(data2$score, data2$method2, mean)
+df = data.frame(Method = x, Score =y)
+df
+
+# 세 집단간 동질성 분석 (세 집단간 분포의 모양이 같다)
+bartlett.test(score ~ method2, data=data2)
+
+# 세 집단간 평균의 차이 검정 (세 집단의 평균이 같다.)
+res = aov(score~method2, data= data2)
+summary(res)
+
+
+################## 모집단의 비율 추론 ########################3
+
+# 단일집단의 비율 추론
+setwd("/Users/bongsu/Downloads/data/part3")
+data = read.csv("one_sample.csv", header=TRUE)
+x = data$survey
+summary(x)
+table(x)
+table(x)/length(x)
+
+binom.test(c(136,14), p=0.8)
+binom.test(c(136,14), p=0.8, alternative = "two.sided", conf.level = 0.95)
+
+binom.test(c(136,14), p=0.8, alternative = "greater", conf.level = 0.95)
+
+
+# 두 모집단의 비율 추론

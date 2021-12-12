@@ -746,8 +746,35 @@ X11()
 wordcloud(df$word, df$freq, min.freq=2, random.order=F, scale=c(4,0.7), 
           rot.per=0.1, colors=pal, family="malgun")
 
+############################ oop ##############################################3
+
+install.packages('pryr')
+library(pryr)
+
+df = data.frame( x=1:10, y=letters[1:10])
+otype(df)
+otype(df$x)
+otype(df$y)
 
 
+foo = structure(list(), class='foo')
+test1 = structure(list(), class='test2')
+class(test1)
+test1
+
+test3 = list()
+class(test3) = 'test4'
+class(test3)
 
 
+f = function(x) UseMethod("f")
+class(f)
+f.a = function() "Class a"
 
+obj1 = structure(list(), class="a")
+class(obj1)
+f(obj1)
+
+mean.a = function(x) 'abcddsdf'
+mean(a)
+mean

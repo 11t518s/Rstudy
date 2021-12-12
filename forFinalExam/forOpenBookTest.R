@@ -123,3 +123,113 @@ ggplot(data=bmiukb, aes(x=cohort, y=pred, fill=method)) +
 ggsave(file= 'bmi.pdf', width=7.5, height=7.5)
 ggsave(file= 'bmi.jpg', dpi=200)
 getwd()
+
+###################### 10 장 mariadb #######################3
+
+install.packages("DBI")
+install.packages('RMySQL') # mysql 돌리기
+
+library(DBI)
+library(RMySQL)  # 맥에서 안돼서 다른방법찾을 찾음
+
+# terminal에서 해줘야할 작업들
+# mysql.server start
+# mariadb -u root -p
+
+# show databases; 데이터 베이스 이름 보기
+
+# 데이터베이스 만들기
+# create database ?????
+
+# 데이터 베이스 사용하기
+# use ?????
+
+# 데이터베이스 테이블 보기
+# show tables;
+
+
+# 데이터 베이스에서 테이블 만들기
+# create table goods (
+# code int primary key,
+# name varchar(20) not null,
+# su int, 
+# dan, int);
+
+# 데이터베이스에서 만든 테이블 내부에 값들 널어주기
+# insert into goods values (1, '냉장고', 2, 850000);
+
+#데이터베이스 내부에 만든 테이블 읽기
+# select * from goods;
+
+
+# use work 이후에 바깥으로 다시 나오기
+
+
+# 유저와 비밀번호 만들기
+# create user 'scott'@'localhost' identified by 'tiger';
+
+
+#에러가 나면 확인해보기
+# select Host, User, Password from mysql.user;
+
+# 만든 유저에 데이터베이스 접근권한 주기
+# grant all privileges on work.* to 'scott'@'localhost';
+# flush privileges;
+
+
+
+drv <- dbDriver("MySQL")
+conn <- dbConnect(drv, username="scott", password="tiger", dbname ="work", host="localhost")
+dbSendQuery(conn, "SET NAMES utf8;")  # 콘솔에 한글 나오게 하기
+dbSendQuery(conn, "SET CHARACTER SET utf8;")  # 콘솔에 한글 나오게 하기
+dbSendQuery(conn, "SET character_set_connection=utf8;") # 콘솔에 한글 나오게 하기
+
+# select 문장
+
+dbGetQuery(conn, "select * from goods")
+dbGetQuery(conn, "select code,name from goods where code=1 or code=2")
+
+#create / alter 문장
+# dbSendUpdate 대신 dbSendQuery 사용
+dbSendQuery(conn, "create table goods1 as select * from goods")
+dbGetQuery(conn, "select * from goods1")
+dbSendQuery(conn, "alter table goods1 rename to goods_original")
+dbGetQuery(conn, "select * from goods_original")
+
+# insert, update, delete 문장
+
+dbSendQuery(conn, "insert into goods values (5, '식기세척기', 1, 250000)")
+dbGetQuery(conn, "select * from goods")
+dbSendQuery(conn, "insert into goods values (6, 'test', 1,1000)")
+dbGetQuery(conn, "select * from goods")
+
+dbSendQuery(conn, "update goods set name='테스트' where code=6")
+dbGetQuery(conn, "select * from goods")
+dbSendQuery(conn, "update goods set su=3 where code=6")
+dbGetQuery(conn, "select * from goods")
+dbSendQuery(conn, "delete from goods where code=6")
+dbGetQuery(conn, "select * from goods")
+
+# inner / outer / left / right join
+dbGetQuery(conn, "select * from goods_original inner join goods on
+           goods_original.code=goods.code")
+
+#write table
+getwd()
+setwd("/Users/bongsu/Downloads/data/part2")
+# type.convert.default(data[[i]], as.is = as.is[i], dec = dec, : '<b3><b2><c0><da>' 에러 난오면 fileEncoding 넣어줘야함
+recode = read.csv('recode.csv', fileEncoding = "CP949")
+recode
+
+dbWriteTable(conn, "goods_newss", recode)
+#ERROR 3948 (42000): Loading local data is disabled; this must be enabled on both the client and server sides  오류 나오면
+# terminal 에서 mysql -u root -p 해서 접속하고
+# show global variables like 'local_infile'; 하면
+# local_infile | off 돼있는데 이걸 on 해줘야함
+# set global local_infile=true;  이렇게 하기
+dbGetQuery(conn, "select * from goods_newss")
+
+
+#disconnect 연결 끊기
+dbDisconnect(conn)
+

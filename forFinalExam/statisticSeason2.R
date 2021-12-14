@@ -564,10 +564,10 @@ class(mod) = "newlm"
 
 summary(mod)
 
-summary.newlm = function(object, ...) print("newlm!!!!")
+summary.newlm = function(object, ...) print("newlm")
 summary(mod)
 
-#### oop 2 ####
+  #### oop 2 ####
 
 
 # S4 object
@@ -602,7 +602,6 @@ a =data.frame(a=10, b=20)
 b =data.frame(a=10, b=30)
 
 union(a,b)
-
 
 # RC object
 

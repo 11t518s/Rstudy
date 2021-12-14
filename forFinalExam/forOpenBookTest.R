@@ -757,24 +757,33 @@ otype(df$x)
 otype(df$y)
 
 
-foo = structure(list(), class='foo')
+foo = structure(list(), class='foo2')
+class(foo)
+
+
 test1 = structure(list(), class='test2')
 class(test1)
 test1
+st1 = list(name="bongsu", year=2, GAP=3.2)
+st2 = structure(list(list(name="bongsu2", year=2, GAP=3.2)), class="student2")
+class(st2)
+class(st1) = "student"
 
-test3 = list()
-class(test3) = 'test4'
-class(test3)
+class(st1)
 
 
 f = function(x) UseMethod("f")
-class(f)
-f.a = function() "Class a"
+
+f.a = function(x) {cat(x,'test')}
+f.default = function(test) {cat(test,'test123123',test,"x") }
+f(structure(list(), class="a"))
+f("cdsdf")
+
 
 obj1 = structure(list(), class="a")
 class(obj1)
 f(obj1)
 
-mean.a = function(x) 'abcddsdf'
+mean.a = function(x) 'adddffef'
 mean(a)
-mean
+

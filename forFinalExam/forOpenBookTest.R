@@ -31,10 +31,10 @@ qplot(wt, mpg, data=mtcars, color=factor(carb)) # t색상적용
 qplot(wt, mpg, data=mtcars, color=factor(carb), size=qsec) # 크기적용
 qplot(wt, mpg, data=mtcars, color=factor(carb), size=qsec, shape=factor(cyl)) #모양적용
 
-qplot(wt, mpg, data=mtcars, geom="point")
-qplot(wt, mpg, data=mtcars, geom="smooth")
-qplot(wt, mpg, data=mtcars, geom=c("point","smooth"))
-qplot(wt, mpg, data=mtcars, color=factor(cyl) ,geom=c("point","smooth"))
+qplot(wt, mpg, data=mtcars, geom="point") # 점
+qplot(wt, mpg, data=mtcars, geom="smooth") # 선
+qplot(wt, mpg, data=mtcars, geom=c("point","smooth")) # 둘다 
+qplot(wt, mpg, data=mtcars, color=factor(cyl) ,geom=c("point","smooth")) 
 qplot(wt, mpg, data=mtcars, color=factor(cyl) ,geom="line")
 qplot(wt, mpg, data=mtcars, color=factor(cyl) ,geom=c("point","line"))
 
@@ -63,10 +63,11 @@ print(gg)
 ################### theme ########################3
 
 gg1 = gg+ theme(plot.title=element_text(size=30, face="bold"),
-                axis.text.x=element_text(size=15),
-                axis.text.y=element_text(size=15),
-                axis.title.x=element_text(size=25),
-                axis.title.y=element_text(size=25) + scale_color_discrete(name="Cut of diamonds")
+                axis.text.x=element_text(size=10),
+                axis.text.y=element_text(size=10),
+                axis.title.x=element_text(size=20),
+                axis.title.y=element_text(size=20) + 
+                scale_color_discrete(name="testset")
                 )
 print(gg1)
 
@@ -81,6 +82,7 @@ gg1 + facet_grid(color ~ cut)
 
 library(datasets)
 data(airquality)
+airquality$Month
 airquality$Month = factor(airquality$Month,labels = c("May", "Jun", "Jul", "Aug", "Sep"))
 p10 = ggplot(airquality, aes(x=Month, y=Ozone)) + geom_boxplot()
 p10
@@ -178,21 +180,45 @@ library(RMySQL)  # 맥에서 안돼서 다른방법찾을 찾음
 
 
 
+install.packages('gmodels')
+library(gmodels)
+x = answer1$education
+y = answer1$smoking
+
+chisq.test(x,y)
+CrossTable(x,y,chisq=TRUE)
+
+install.packages("DBI")
+install.packages('RMySQL') # mysql 돌리기
+
+library(DBI)
+library(RMySQL)  # 맥에서 안돼서 다른방법찾을 찾음
+
 drv <- dbDriver("MySQL")
 conn <- dbConnect(drv, username="scott", password="tiger", dbname ="work", host="localhost")
 dbSendQuery(conn, "SET NAMES utf8;")  # 콘솔에 한글 나오게 하기
 dbSendQuery(conn, "SET CHARACTER SET utf8;")  # 콘솔에 한글 나오게 하기
 dbSendQuery(conn, "SET character_set_connection=utf8;") # 콘솔에 한글 나오게 하기
 
+answer1
+dbWriteTable(conn, "smoking", answer1)
+dbGetQuery(conn, "select * from smorking")
+
+
+조건  where smoking='3.non-smoking' and education='2.high' 
+
+
+
+
 # select 문장
 
 dbGetQuery(conn, "select * from goods")
-dbGetQuery(conn, "select code,name from goods where code=1 or code=2")
+dbGetQuery(conn, "select code,name from goods where code=1 or code=5")
 
 #create / alter 문장
 # dbSendUpdate 대신 dbSendQuery 사용
-dbSendQuery(conn, "create table goods1 as select * from goods")
-dbGetQuery(conn, "select * from goods1")
+dbSendQuery(conn, "create table goods11231 as select * from goods")
+dbGetQuery(conn, "select * from goods11231")
 dbSendQuery(conn, "alter table goods1 rename to goods_original")
 dbGetQuery(conn, "select * from goods_original")
 
@@ -213,6 +239,22 @@ dbGetQuery(conn, "select * from goods")
 # inner / outer / left / right join
 dbGetQuery(conn, "select * from goods_original inner join goods on
            goods_original.code=goods.code")
+
+dbGetQuery(conn, "select * from goods_original left join goods on
+           goods_original.code=goods.code union select * from goods_original right join goods on goods_original.code=goods.code")
+
+
+# outer join은 이제 사용하지 않음 ㅣ
+select *
+
+from A left join B
+
+union
+
+select *
+  
+  from A right join B;
+
 
 #write table
 getwd()
@@ -398,11 +440,11 @@ chisq.test(x$freq, p=c(0.2,0.1,0.2,0.3,0.2))
 
 # 독립성 검정
 
-install.packages('gmodels')
-library(gmodels)
 data = read.csv('cleanDescriptive.csv', header=TRUE, fileEncoding = 'CP949')
 data
 
+install.packages('gmodels')
+library(gmodels)
 x = data$level2
 y = data$pass2
 
@@ -550,7 +592,6 @@ wordResult[1:10]
 myName <- names(wordResult) # 단어 이름 생성 -> 빈도수의 이름 
 par(family="AppleGothic")
 wordcloud(myName, wordResult) # 단어구름 적성
-warning()
 
 
 # (9) 단어 구름에 디자인 적용(빈도수, 색상, 위치, 회전 등) 
@@ -561,10 +602,11 @@ str(word.df) # word, freq 변수
 # 단어 색상과 글꼴 지정
 pal <- brewer.pal(12,"Paired") # 12가지 색상 pal <- brewer.pal(9,"Set1") # Set1~ Set3
 # 폰트 설정세팅 : "맑은 고딕", "서울남산체 B"
-windowsFonts(malgun=windowsFont("맑은 고딕"))  #windows
+
 
 # 단어 구름 시각화 - 별도의 창에 색상, 빈도수, 글꼴, 회전 등의 속성 적용 
 #x11( ) # 별도의 창을 띄우는 함수
+x11()
 wordcloud(word.df$word, word.df$freq, 
           scale=c(5,1), min.freq=3, random.order=F, 
           rot.per=.1, colors=pal, family="malgun")
@@ -663,6 +705,7 @@ ruleg
 
 #  edgelist 시각화
 #X11()
+x11()
 par(family = 'D2Coding')
 
 plot.igraph(ruleg, vertex.label=V(ruleg)$name,
@@ -787,3 +830,153 @@ f(obj1)
 mean.a = function(x) 'adddffef'
 mean(a)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+setwd("/Users/bongsu/Downloads/data\ 2")
+getwd()
+answer1 = read.csv('smoking.csv', fileEncoding = "CP949")
+answer1
+head(answer1)
+table(answer1)
+
+
+
+
+install.packages('gmodels')
+library(gmodels)
+x = answer1$education
+y = answer1$smoking
+
+chisq.test(x,y)
+CrossTable(x,y,chisq=TRUE)
+
+
+
+install.packages('gmodels')
+library(gmodels)
+x = answer1$education
+y = answer1$smoking
+
+chisq.test(x,y)
+CrossTable(x,y,chisq=TRUE)
+
+install.packages("DBI")
+install.packages('RMySQL') # mysql 돌리기
+
+library(DBI)
+library(RMySQL)  # 맥에서 안돼서 다른방법찾을 찾음
+
+drv <- dbDriver("MySQL")
+conn <- dbConnect(drv, username="scott", password="tiger", dbname ="work", host="localhost")
+dbSendQuery(conn, "SET NAMES utf8;")  # 콘솔에 한글 나오게 하기
+dbSendQuery(conn, "SET CHARACTER SET utf8;")  # 콘솔에 한글 나오게 하기
+dbSendQuery(conn, "SET character_set_connection=utf8;") # 콘솔에 한글 나오게 하기
+
+answer1
+dbWriteTable(conn, "smoking2", answer1)
+dbGetQuery(conn, "select * from smorking where smoking=3.non-smoking and education=2.high")
+
+
+
+
+
+
+
+
+
+
+
+user_data$house_type = factor(user_data$house_type,labels = c('단독주택', '다세대주택', '아파트', '오피스텔'))
+user_data$age_group = ifelse(user_data$age >= 40, "40대 이상", "40대 미만")
+user_data$age = factor(user_data$age,label)
+
+table(user_data$age_group, user_data$house_type)
+par(family="AppleGothic")
+
+
+if (user_data$age > 40) {
+  user_data$age_group = "40대 이상"
+}
+user_data$age
+table(user_data$age_group,user_data$house_type)
+
+library('ggplot2')
+library(datasets)
+user_data <- read.csv('user_data.csv', fileEncoding = "CP949")
+
+user_data$house_type = factor(user_data$house_type,labels = c('단독주택', '다세대주택', '아파트', '오피스텔'))
+par
+answer2 = ggplot(user_data, aes(x=user_data$house_type, y=user_data$age)) + geom_boxplot() + scale_y_continuous(name = "age") + scale_x_discrete(name = "house_type")
+x11()
+answer2
+
+
+
+p10 = p10 + scale_x_discrete(name="Month") + scale_y_continuous(name = "Mean ozon in \nparts per billion")
+p10
+p10 = p10 + scale_y_continuous(name = "Mean ozone in\nparts per billion", breaks = seq(0,175,25), limits=c(0,175))
+p10
+
+p10 = ggplot(airquality, aes(x = Month, y = Ozone)) + geom_boxplot(fill = "#4271AE", color = "#1F3552") + scale_y_continuous(name = "Mean ozone in \nparts per billion", breaks = seq(0,175,25), limits=c(0,175)) + scale_x_discrete(name = "Month") + ggtitle("Boxplot of mean ozone by month")
+p10
+p10 = p10 + theme_bw()
+p10
+
+
+
+
+
+
+
+
+
+
+
+
+
+user_data$house_type
+
+
+Acc2 = setRefClass("Account2", fields=list(balance="numeric"),
+                   methods=list(
+                     withdraw = function(x) {balance <<-balance - x},
+                     deposit = function(x) {balance <<- balance + x}
+                   ))
+
+Acc3 = setRefClass("NoOverdraft", 
+                   contains = "Account2",
+                   methods=list(
+                     withdraw = function(x) {
+                       if(balance <x) stop("Not enough Money!!!")
+                       balance <<- balance - x
+                     }
+                   ))
+
+
+answer3 = setRefClass('Class1', fields=list(score="numeric"))
+answer3_1 = setRefClass("Class2",
+                        contains='Class1',
+                        method=list(
+                          getCredit = function(x) {
+                            if(score > 90) {
+                              "A"
+                            } else {
+                              "B"
+                            }
+                          }
+                        ))
+c2 = answer3_1$new(score=89)
+c2$getCredit()
+c1 = answer3$new(score=99)
+c1$score
